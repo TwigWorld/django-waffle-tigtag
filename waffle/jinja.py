@@ -11,6 +11,13 @@ from waffle.views import _generate_waffle_js
 def flag_helper(context, flag_name):
     return flag_is_active(context['request'], flag_name)
 
+@jinja2.contextfunction
+def switch_helper(context, switch_name):
+    return switch_is_active(context['request'], switch_name)
+
+@jinja2.contextfunction
+def sample_helper(context, sample_name):
+    return sample_is_active(context['request'], sample_name)
 
 @jinja2.contextfunction
 def inline_wafflejs_helper(context):
@@ -21,7 +28,7 @@ class WaffleExtension(Extension):
     def __init__(self, environment):
         environment.globals['waffle'] = {
             'flag': flag_helper,
-            'switch': switch_is_active,
-            'sample': sample_is_active,
+            'switch': switch_helper,
+            'sample': sample_helper,
             'wafflejs': inline_wafflejs_helper
         }

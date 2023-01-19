@@ -39,7 +39,7 @@ Or::
     def test_with_sample():
         # Only 'sample_name' is affected, and will always be True. Other
         # samples behave normally.
-        assert waffle.sample_is_active('sample_name')
+        assert waffle.sample_is_active(request, 'sample_name')
 
 All three will restore the relevant flag, sample, or switch to its
 previous state: they will restore the old values and will delete objects

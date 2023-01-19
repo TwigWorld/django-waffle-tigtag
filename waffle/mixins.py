@@ -45,7 +45,8 @@ class WaffleSampleMixin(BaseWaffleMixin):
     waffle_sample = None
 
     def dispatch(self, request, *args, **kwargs):
-        active = self.validate_waffle(self.waffle_sample, sample_is_active)
+        func = partial(sample_is_active, request)
+        active = self.validate_waffle(self.waffle_sample, func)
 
         if not active:
             return self.invalid_waffle()
@@ -62,7 +63,8 @@ class WaffleSwitchMixin(BaseWaffleMixin):
     waffle_switch = None
 
     def dispatch(self, request, *args, **kwargs):
-        active = self.validate_waffle(self.waffle_switch, switch_is_active)
+        func = partial(switch_is_active, request)
+        active = self.validate_waffle(self.waffle_switch, func)
 
         if not active:
             return self.invalid_waffle()

@@ -34,7 +34,7 @@ Switches
 
 ::
 
-    waffle.switch_is_active('switch_name')
+    waffle.switch_is_active(request, 'switch_name')
 
 Returns ``True`` if the switch is active, else ``False``.
 
@@ -44,7 +44,7 @@ Samples
 
 ::
 
-    waffle.sample_is_active('sample_name')
+    waffle.sample_is_active(request, 'sample_name')
 
 Returns ``True`` if the sample is active, else ``False``.
 

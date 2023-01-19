@@ -17,7 +17,7 @@ commands and tasks.
     ::
 
         # YES
-        foo_on = sample_is_active('foo')
+        foo_on = sample_is_active(request, 'foo')
         if foo_on:
             pass
 
@@ -28,11 +28,11 @@ commands and tasks.
     ::
 
         # NO!
-        if sample_is_active('foo'):
+        if sample_is_active(request, 'foo'):
             pass
 
         # ...later...
-        if sample_is_active('foo'):  # INDEPENDENT of the previous check
+        if sample_is_active(request, 'foo'):  # INDEPENDENT of the previous check
             pass
 
 

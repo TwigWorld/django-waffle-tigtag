@@ -26,9 +26,9 @@ Methods
 
 These methods can be used exactly like their Python equivalents:
 
-- ``waffle.flag_is_active(flag_name)``
-- ``waffle.switch_is_active(switch_name)``
-- ``waffle.sample_is_active(sample_name)``
+- ``waffle.flag_is_active(request, flag_name)``
+- ``waffle.switch_is_active(request, switch_name)``
+- ``waffle.sample_is_active(request, sample_name)``
 
 
 Members

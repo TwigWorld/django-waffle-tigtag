@@ -70,12 +70,12 @@ def flag(parser, token):
 
 @register.tag
 def switch(parser, token):
-    return WaffleNode.handle_token(parser, token, 'switch', lambda request, name: switch_is_active(name))
+    return WaffleNode.handle_token(parser, token, 'switch', switch_is_active)
 
 
 @register.tag
 def sample(parser, token):
-    return WaffleNode.handle_token(parser, token, 'sample', lambda request, name: sample_is_active(name))
+    return WaffleNode.handle_token(parser, token, 'sample', sample_is_active)
 
 
 class InlineWaffleJSNode(template.Node):

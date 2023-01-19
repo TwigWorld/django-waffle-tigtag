@@ -10,6 +10,7 @@ from django.db import models, router, transaction
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.sites.models import Site
 
 from waffle import managers, get_waffle_flag_model
 from waffle.utils import get_setting, keyfmt, get_cache
@@ -34,34 +35,34 @@ class BaseModel(models.Model):
         return (self.name,)
 
     @classmethod
-    def _cache_key(cls, name):
-        return keyfmt(get_setting(cls.SINGLE_CACHE_KEY), name)
+    def _cache_key(cls, *args, **kwargs):
+        return keyfmt(get_setting(cls.SINGLE_CACHE_KEY), *args)
 
     @classmethod
-    def get(cls, name):
+    def get(cls, *args, **kwargs):
         cache = get_cache()
-        cache_key = cls._cache_key(name)
+        cache_key = cls._cache_key(*args)
         cached = cache.get(cache_key)
         if cached == CACHE_EMPTY:
-            return cls(name=name)
+            return cls()
         if cached:
             return cached
 
         try:
-            obj = cls.get_from_db(name)
+            obj = cls.get_from_db(**kwargs)
         except cls.DoesNotExist:
             cache.add(cache_key, CACHE_EMPTY)
-            return cls(name=name)
+            return cls()
 
         cache.add(cache_key, obj)
         return obj
 
     @classmethod
-    def get_from_db(cls, name):
+    def get_from_db(cls, *args, **kwargs):
         objects = cls.objects
         if get_setting('READ_FROM_WRITE_DB'):
             objects = objects.using(router.db_for_write(cls))
-        return objects.get(name=name)
+        return objects.get(**kwargs)
 
     @classmethod
     def get_all(cls):
@@ -196,6 +197,8 @@ class AbstractBaseFlag(BaseModel):
         help_text=_('Date when this Flag was last modified.'),
         verbose_name=_('Modified'),
     )
+
+    site = models.ForeignKey(Site, blank=True, null=True, related_name='waffle_flags')
 
     objects = managers.FlagManager()
 
@@ -433,6 +436,8 @@ class Switch(BaseModel):
         verbose_name=_('Modified'),
     )
 
+    site = models.ForeignKey(Site, blank=True, null=True, related_name='waffle_switches')
+
     objects = managers.SwitchManager()
 
     SINGLE_CACHE_KEY = 'SWITCH_CACHE_KEY'
@@ -497,6 +502,8 @@ class Sample(BaseModel):
         help_text=_('Date when this Sample was last modified.'),
         verbose_name=_('Modified'),
     )
+
+    site = models.ForeignKey(Site, blank=True, null=True, related_name='waffle_samples')
 
     objects = managers.SampleManager()
 
