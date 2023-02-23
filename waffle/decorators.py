@@ -36,9 +36,9 @@ def waffle_switch(switch_name, redirect_to=None):
         @wraps(view, assigned=available_attrs(view))
         def _wrapped_view(request, *args, **kwargs):
             if switch_name.startswith('!'):
-                active = not switch_is_active(switch_name[1:])
+                active = not switch_is_active(request, switch_name[1:])
             else:
-                active = switch_is_active(switch_name)
+                active = switch_is_active(request, switch_name)
 
             if not active:
                 response_to_redirect_to = get_response_to_redirect(redirect_to, *args, **kwargs)
