@@ -4,6 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from waffle.utils import get_setting
 from django.apps import apps as django_apps
+from django.contrib.sites.shortcuts import get_current_site
 
 VERSION = (0, 18, 0)
 __version__ = '.'.join(map(str, VERSION))
@@ -11,21 +12,24 @@ default_app_config = 'waffle.apps.WaffleConfig'
 
 
 def flag_is_active(request, flag_name):
-    flag = get_waffle_flag_model().get(flag_name)
+    current_site = get_current_site(request)
+    flag = get_waffle_flag_model().get(name=flag_name, site=current_site)
     return flag.is_active(request)
 
 
-def switch_is_active(switch_name):
+def switch_is_active(request, switch_name):
     from .models import Switch
 
-    switch = Switch.get(switch_name)
+    current_site = get_current_site(request)
+    switch = Switch.get(name=switch_name, site=current_site)
     return switch.is_active()
 
 
-def sample_is_active(sample_name):
+def sample_is_active(request, sample_name):
     from .models import Sample
 
-    sample = Sample.get(sample_name)
+    current_site = get_current_site(request)
+    sample = Sample.get(name=sample_name, site=current_site)
     return sample.is_active()
 
 
