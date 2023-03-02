@@ -14,7 +14,7 @@ from waffle import get_waffle_flag_model
 from waffle.admin import (FlagAdmin, SwitchAdmin, InformativeManyToManyRawIdWidget, enable_for_all,
                           disable_for_all, delete_individually, enable_switches, disable_switches)
 from waffle.models import Switch
-from waffle.tests.base import TestCase
+from tests.base import TestCase
 
 
 django_version = tuple(int(d) for d in django.get_version().split("."))

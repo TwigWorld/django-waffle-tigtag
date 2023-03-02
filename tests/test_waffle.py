@@ -20,7 +20,7 @@ from test_app import views
 from test_app.models import CompanyAwareFlag, Company
 from waffle.middleware import WaffleMiddleware
 from waffle.models import Sample, Switch
-from waffle.tests.base import TestCase
+from tests.base import TestCase
 
 
 DATABASES = {'default', 'readonly'}

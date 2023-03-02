@@ -7,7 +7,7 @@ from django.test import RequestFactory
 
 from test_app import views
 from waffle.middleware import WaffleMiddleware
-from waffle.tests.base import TestCase
+from tests.base import TestCase
 
 
 def get():

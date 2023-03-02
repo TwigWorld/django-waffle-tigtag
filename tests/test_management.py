@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group, User
 
 from waffle import get_waffle_flag_model
 from waffle.models import Sample, Switch
-from waffle.tests.base import TestCase
+from tests.base import TestCase
 
 
 class WaffleFlagManagementCommandTests(TestCase):

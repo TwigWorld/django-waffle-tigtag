@@ -34,5 +34,16 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries :: Python Modules',
-    ]
+    ],
+    install_requires=[
+        "django<2",
+        "importlib-metadata",
+    ],
+    extras_require={
+        "testing": [
+            "pytest",
+            "pytest-django",
+            "mock"
+        ]
+    }
 )
