@@ -3,5 +3,3 @@ Django
 flake8
 
 # Everything else is in a Django-version-free version
-# for TravisCI.
--r travis.txt

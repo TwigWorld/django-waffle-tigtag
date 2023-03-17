@@ -35,8 +35,7 @@ if 'DATABASE_URL' in os.environ:
         DATABASES['default'] = dj_database_url.config()
     except ImportError:
         raise ImportError('Using the DATABASE_URL variable requires '
-                          'dj-database-url and psycopg2. Try:\n\npip install '
-                          '-r travis.txt')
+                          'dj-database-url and psycopg2. Try:\n\npip install ')
 
 INSTALLED_APPS = (
     'django.contrib.admin',
