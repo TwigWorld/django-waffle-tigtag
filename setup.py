@@ -44,8 +44,7 @@ setup(
             "pytest",
             "pytest-django",
             "mock",
-            "Jinja2>=2.7.1,<3",
-            "django-jinja",
+            "django-jinja<2.5",
         ]
     }
 )
