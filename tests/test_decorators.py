@@ -4,7 +4,6 @@ from waffle import get_waffle_flag_model
 from waffle.models import Switch
 from tests.base import TestCase
 
-
 class DecoratorTests(TestCase):
     def test_flag_must_be_active(self):
         resp = self.client.get('/flag-on')

@@ -19,7 +19,7 @@ import waffle
 from test_app import views
 from test_app.models import CompanyAwareFlag, Company
 from waffle.middleware import WaffleMiddleware
-from waffle.models import Sample, Switch
+from waffle.models import Sample, Switch, Flag
 from tests.base import TestCase
 
 
@@ -317,7 +317,7 @@ class WaffleTests(TestCase):
         response = self.client.get('/flag_in_view?dwft_myflag=1')
         self.assertEqual(b'on', response.content)
 
-    @override_settings(DATABASE_ROUTERS=['waffle.tests.base.ReplicationRouter'])
+    @override_settings(DATABASE_ROUTERS=['tests.base.ReplicationRouter'])
     def test_everyone_on_read_from_write_db(self):
         flag = waffle.get_waffle_flag_model().objects.create(name='myflag', everyone=True)
 
@@ -395,7 +395,7 @@ class SwitchTests(TestCase):
         SWITCH_NAME = 'my_dynamically_created_switch'
 
         assert Switch.objects.count() == 0
-        assert expected_value == waffle.switch_is_active(SWITCH_NAME)
+        assert expected_value == waffle.switch_is_active(get(), SWITCH_NAME)
         assert Switch.objects.count() == 1
 
         switch = Switch.objects.get(name=SWITCH_NAME)
@@ -404,55 +404,55 @@ class SwitchTests(TestCase):
 
     def test_switch_active(self):
         switch = Switch.objects.create(name='myswitch', active=True)
-        assert waffle.switch_is_active(switch.name)
+        assert waffle.switch_is_active(get(), switch.name)
 
     def test_switch_inactive(self):
         switch = Switch.objects.create(name='myswitch', active=False)
-        assert not waffle.switch_is_active(switch.name)
+        assert not waffle.switch_is_active(get(), switch.name)
 
     def test_switch_active_from_cache(self):
         """Do not make two queries for an existing active switch."""
         switch = Switch.objects.create(name='myswitch', active=True)
         # Get the value once so that it will be put into the cache
-        assert waffle.switch_is_active(switch.name)
+        assert waffle.switch_is_active(get(), switch.name)
         queries = len(connection.queries)
-        assert waffle.switch_is_active(switch.name)
+        assert waffle.switch_is_active(get(), switch.name)
         self.assertEqual(queries, len(connection.queries))
 
     def test_switch_inactive_from_cache(self):
         """Do not make two queries for an existing inactive switch."""
         switch = Switch.objects.create(name='myswitch', active=False)
         # Get the value once so that it will be put into the cache
-        assert not waffle.switch_is_active(switch.name)
+        assert not waffle.switch_is_active(get(), switch.name)
         queries = len(connection.queries)
-        assert not waffle.switch_is_active(switch.name)
+        assert not waffle.switch_is_active(get(), switch.name)
         self.assertEqual(queries, len(connection.queries))
 
     def test_undefined(self):
-        assert not waffle.switch_is_active('foo')
+        assert not waffle.switch_is_active(get(), 'foo')
 
     @override_settings(WAFFLE_SWITCH_DEFAULT=True)
     def test_undefined_default(self):
-        assert waffle.switch_is_active('foo')
+        assert waffle.switch_is_active(get(), 'foo')
 
     @override_settings(DEBUG=True)
     def test_no_query(self):
         """Do not make two queries for a non-existent switch."""
         assert not Switch.objects.filter(name='foo').exists()
         queries = len(connection.queries)
-        assert not waffle.switch_is_active('foo')
+        assert not waffle.switch_is_active(get(), 'foo')
         assert len(connection.queries) > queries
         queries = len(connection.queries)
-        assert not waffle.switch_is_active('foo')
+        assert not waffle.switch_is_active(get(), 'foo')
         self.assertEqual(queries, len(connection.queries))
 
-    @override_settings(DATABASE_ROUTERS=['waffle.tests.base.ReplicationRouter'])
+    @override_settings(DATABASE_ROUTERS=['tests.base.ReplicationRouter'])
     def test_read_from_write_db(self):
         switch = Switch.objects.create(name='switch', active=True)
 
         # By default, switch_is_active should hit whatever it configured as the
         # read DB (so values will be stale if replication is lagged).
-        assert not waffle.switch_is_active(switch.name)
+        assert not waffle.switch_is_active(get(), switch.name)
 
         with override_settings(WAFFLE_READ_FROM_WRITE_DB=True):
             # Save the switch again to flush the cache.
@@ -460,7 +460,7 @@ class SwitchTests(TestCase):
 
             # The next read should now be directed to the write DB, ensuring
             # the cache and DB are in sync.
-            assert waffle.switch_is_active(switch.name)
+            assert waffle.switch_is_active(get(), switch.name)
 
     @override_settings(WAFFLE_CREATE_MISSING_SWITCHES=True)
     @override_settings(WAFFLE_SWITCH_DEFAULT=False)
@@ -474,13 +474,13 @@ class SwitchTests(TestCase):
 
     @mock.patch('waffle.models.logger')
     def test_no_logging_missing_switch_by_default(self, mock_logger):
-        waffle.switch_is_active('foo')
+        waffle.switch_is_active(get(), 'foo')
         mock_logger.log.call_count == 0
 
     @override_settings(WAFFLE_LOG_MISSING_SWITCHES=logging.WARNING)
     @mock.patch('waffle.models.logger')
     def test_logging_missing_switch(self, mock_logger):
-        waffle.switch_is_active('foo')
+        waffle.switch_is_active(get(), 'foo')
         mock_logger.log.assert_called_with(logging.WARNING, 'Switch %s not found', 'foo')
 
 
@@ -491,36 +491,36 @@ class SampleTests(TestCase):
         SAMPLE_NAME = 'my_dynamically_created_sample'
 
         assert Sample.objects.count() == 0
-        assert is_active == waffle.sample_is_active(SAMPLE_NAME)
+        assert is_active == waffle.sample_is_active(get(), SAMPLE_NAME)
         assert Sample.objects.count() == 1
 
-        sample = Sample.objects.get(name=SAMPLE_NAME)
-
+        print(Sample.get())
+        sample = Sample.get(name=SAMPLE_NAME)
         assert sample.name == SAMPLE_NAME
         assert sample.percent == expected_value
 
     def test_sample_100(self):
         sample = Sample.objects.create(name='sample', percent='100.0')
-        assert waffle.sample_is_active(sample.name)
+        assert waffle.sample_is_active(get('/foo'), sample.name)
 
     def test_sample_0(self):
         sample = Sample.objects.create(name='sample', percent='0.0')
-        assert not waffle.sample_is_active(sample.name)
+        assert not waffle.sample_is_active(get(), sample.name)
 
     def test_undefined(self):
-        assert not waffle.sample_is_active('foo')
+        assert not waffle.sample_is_active(get(), 'foo')
 
     @override_settings(WAFFLE_SAMPLE_DEFAULT=True)
     def test_undefined_default(self):
-        assert waffle.sample_is_active('foo')
+        assert waffle.sample_is_active(get(), 'foo')
 
-    @override_settings(DATABASE_ROUTERS=['waffle.tests.base.ReplicationRouter'])
+    @override_settings(DATABASE_ROUTERS=['tests.base.ReplicationRouter'])
     def test_read_from_write_db(self):
         sample = Sample.objects.create(name='sample', percent='100.0')
 
         # By default, sample_is_active should hit whatever it configured as the
         # read DB (so values will be stale if replication is lagged).
-        assert not waffle.sample_is_active(sample.name)
+        assert not waffle.sample_is_active(get(), sample.name)
 
         with override_settings(WAFFLE_READ_FROM_WRITE_DB=True):
             # Save the sample again to flush the cache.
@@ -528,7 +528,7 @@ class SampleTests(TestCase):
 
             # The next read should now be directed to the write DB, ensuring
             # the cache and DB are in sync.
-            assert waffle.sample_is_active(sample.name)
+            assert waffle.sample_is_active(get(), sample.name)
 
     @override_settings(WAFFLE_CREATE_MISSING_SAMPLES=True)
     @override_settings(WAFFLE_SAMPLE_DEFAULT=False)
@@ -542,13 +542,13 @@ class SampleTests(TestCase):
 
     @mock.patch('waffle.models.logger')
     def test_no_logging_missing_sample_by_default(self, mock_logger):
-        waffle.switch_is_active('foo')
+        waffle.switch_is_active(get(), 'foo')
         mock_logger.log.call_count == 0
 
     @override_settings(WAFFLE_LOG_MISSING_SAMPLES=logging.WARNING)
     @mock.patch('waffle.models.logger')
     def test_logging_missing_sample(self, mock_logger):
-        waffle.sample_is_active('foo')
+        waffle.sample_is_active(get(), 'foo')
         mock_logger.log.assert_called_with(logging.WARNING, 'Sample %s not found', 'foo')
 
 
@@ -572,7 +572,6 @@ class TransactionTestMixin(object):
                      'does not support.')
     def test_flip_toggle_in_transaction(self):
         """Wait to invalidate the cache until after the current transaction.
-
         This test covers a potential race condition where, if the cache were
         flushed in the middle of a transaction, the next read from the database
         (before the transaction is committed) would get a stale value and cache
@@ -637,7 +636,7 @@ class SwitchTransactionTests(TransactionTestMixin, TransactionTestCase):
         switch.save()
 
     def toggle_is_active(self, switch):
-        return waffle.switch_is_active(switch.name)
+        return waffle.switch_is_active(get(), switch.name)
 
 
 class SampleTransactionTests(TransactionTestMixin, TransactionTestCase):
@@ -649,4 +648,4 @@ class SampleTransactionTests(TransactionTestMixin, TransactionTestCase):
         sample.save()
 
     def toggle_is_active(self, sample):
-        return waffle.sample_is_active(sample.name)
+        return waffle.sample_is_active(get(), sample.name)

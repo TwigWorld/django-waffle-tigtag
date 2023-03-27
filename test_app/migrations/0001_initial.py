@@ -41,6 +41,7 @@ class Migration(migrations.Migration):
                 ('companies', models.ManyToManyField(blank=True, help_text='Activate this flag for these companies.', to='test_app.Company')),
                 ('groups', models.ManyToManyField(blank=True, help_text='Activate this flag for these user groups.', to='auth.Group', verbose_name='Groups')),
                 ('users', models.ManyToManyField(blank=True, help_text='Activate this flag for these users.', to=settings.AUTH_USER_MODEL, verbose_name='Users')),
+                ('site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='waffle_flags', to='sites.Site')),
             ],
             options={
                 'verbose_name': 'Flag',

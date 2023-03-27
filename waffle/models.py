@@ -444,6 +444,7 @@ class Switch(BaseModel):
     ALL_CACHE_KEY = 'ALL_SWITCHES_CACHE_KEY'
 
     class Meta:
+        swappable = 'WAFFLE_SWITCH_MODEL'
         verbose_name = _('Switch')
         verbose_name_plural = _('Switches')
 
@@ -511,6 +512,7 @@ class Sample(BaseModel):
     ALL_CACHE_KEY = 'ALL_SAMPLES_CACHE_KEY'
 
     class Meta:
+        swappable = 'WAFFLE_SAMPLE_MODEL'
         verbose_name = _('Sample')
         verbose_name_plural = _('Samples')
 

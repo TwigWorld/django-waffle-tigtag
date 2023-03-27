@@ -10,16 +10,20 @@ import waffle
 from waffle.models import Switch, Sample
 from waffle.testutils import override_switch, override_flag, override_sample
 
+def req():
+    r = RequestFactory().get('/')
+    r.user = AnonymousUser()
+    return r
 
 class OverrideSwitchMixin:
     def test_switch_existed_and_was_active(self):
         Switch.objects.create(name='foo', active=True)
 
         with override_switch('foo', active=True):
-            assert waffle.switch_is_active('foo')
+            assert waffle.switch_is_active(req(), 'foo')
 
         with override_switch('foo', active=False):
-            assert not waffle.switch_is_active('foo')
+            assert not waffle.switch_is_active(req(), 'foo')
 
         # make sure it didn't change 'active' value
         assert Switch.objects.get(name='foo').active
@@ -28,10 +32,10 @@ class OverrideSwitchMixin:
         Switch.objects.create(name='foo', active=False)
 
         with override_switch('foo', active=True):
-            assert waffle.switch_is_active('foo')
+            assert waffle.switch_is_active(req(), 'foo')
 
         with override_switch('foo', active=False):
-            assert not waffle.switch_is_active('foo')
+            assert not waffle.switch_is_active(req(), 'foo')
 
         # make sure it didn't change 'active' value
         assert not Switch.objects.get(name='foo').active
@@ -40,10 +44,10 @@ class OverrideSwitchMixin:
         assert not Switch.objects.filter(name='foo').exists()
 
         with override_switch('foo', active=True):
-            assert waffle.switch_is_active('foo')
+            assert waffle.switch_is_active(req(), 'foo')
 
         with override_switch('foo', active=False):
-            assert not waffle.switch_is_active('foo')
+            assert not waffle.switch_is_active(req(), 'foo')
 
         assert not Switch.objects.filter(name='foo').exists()
 
@@ -52,13 +56,13 @@ class OverrideSwitchMixin:
 
         @override_switch('foo', active=True)
         def test_enabled():
-            assert waffle.switch_is_active('foo')
+            assert waffle.switch_is_active(req(), 'foo')
 
         test_enabled()
 
         @override_switch('foo', active=False)
         def test_disabled():
-            assert not waffle.switch_is_active('foo')
+            assert not waffle.switch_is_active(req(), 'foo')
 
         test_disabled()
 
@@ -93,12 +97,12 @@ class OverrideSwitchMixin:
 
         with transaction.atomic():
             with override_switch('foo', active=True):
-                assert waffle.switch_is_active('foo')
+                assert waffle.switch_is_active(req(), 'foo')
 
             with override_switch('foo', active=False):
-                assert not waffle.switch_is_active('foo')
+                assert not waffle.switch_is_active(req(), 'foo')
 
-        assert waffle.switch_is_active('foo')
+        assert waffle.switch_is_active(req(), 'foo')
 
 
 class OverrideSwitchTestCase(OverrideSwitchMixin, TestCase):
@@ -111,12 +115,6 @@ class OverrideSwitchTransactionTestCase(OverrideSwitchMixin, TransactionTestCase
     """
     Run tests with Django TransactionTestCase
     """
-
-
-def req():
-    r = RequestFactory().get('/')
-    r.user = AnonymousUser()
-    return r
 
 
 class OverrideFlagTestsMixin:
@@ -194,10 +192,10 @@ class OverrideSampleTestsMixin:
         Sample.objects.create(name='foo', percent='100.0')
 
         with override_sample('foo', active=True):
-            assert waffle.sample_is_active('foo')
+            assert waffle.sample_is_active(req(), 'foo')
 
         with override_sample('foo', active=False):
-            assert not waffle.sample_is_active('foo')
+            assert not waffle.sample_is_active(req(), 'foo')
 
         self.assertEquals(Decimal('100.0'),
                           Sample.objects.get(name='foo').percent)
@@ -206,10 +204,10 @@ class OverrideSampleTestsMixin:
         Sample.objects.create(name='foo', percent='0.0')
 
         with override_sample('foo', active=True):
-            assert waffle.sample_is_active('foo')
+            assert waffle.sample_is_active(req(), 'foo')
 
         with override_sample('foo', active=False):
-            assert not waffle.sample_is_active('foo')
+            assert not waffle.sample_is_active(req(), 'foo')
 
         self.assertEquals(Decimal('0.0'),
                           Sample.objects.get(name='foo').percent)
@@ -218,10 +216,10 @@ class OverrideSampleTestsMixin:
         Sample.objects.create(name='foo', percent='50.0')
 
         with override_sample('foo', active=True):
-            assert waffle.sample_is_active('foo')
+            assert waffle.sample_is_active(req(), 'foo')
 
         with override_sample('foo', active=False):
-            assert not waffle.sample_is_active('foo')
+            assert not waffle.sample_is_active(req(), 'foo')
 
         self.assertEquals(Decimal('50.0'),
                           Sample.objects.get(name='foo').percent)
@@ -230,10 +228,10 @@ class OverrideSampleTestsMixin:
         assert not Sample.objects.filter(name='foo').exists()
 
         with override_sample('foo', active=True):
-            assert waffle.sample_is_active('foo')
+            assert waffle.sample_is_active(req(), 'foo')
 
         with override_sample('foo', active=False):
-            assert not waffle.sample_is_active('foo')
+            assert not waffle.sample_is_active(req(), 'foo')
 
         assert not Sample.objects.filter(name='foo').exists()
 
@@ -242,12 +240,12 @@ class OverrideSampleTestsMixin:
 
         with transaction.atomic():
             with override_sample('foo', active=True):
-                assert waffle.sample_is_active('foo')
+                assert waffle.sample_is_active(req(), 'foo')
 
             with override_sample('foo', active=False):
-                assert not waffle.sample_is_active('foo')
+                assert not waffle.sample_is_active(req(), 'foo')
 
-        assert waffle.sample_is_active('foo')
+        assert waffle.sample_is_active(req(), 'foo')
 
 
 class OverrideSampleTestCase(OverrideSampleTestsMixin, TestCase):
@@ -270,7 +268,7 @@ class OverrideSwitchOnClassTestsMixin(object):
         Switch.objects.create(name='foo', active=True)
 
     def test_undecorated_method_is_set_properly_for_switch(self):
-        self.assertFalse(waffle.switch_is_active('foo'))
+        self.assertFalse(waffle.switch_is_active(req(), 'foo'))
 
 
 @override_switch('foo', active=False)
@@ -324,7 +322,7 @@ class OverrideSampleOnClassTestsMixin(object):
         Sample.objects.create(name='foo', percent='100.0')
 
     def test_undecorated_method_is_set_properly_for_sample(self):
-        self.assertFalse(waffle.sample_is_active('foo'))
+        self.assertFalse(waffle.sample_is_active(req(), 'foo'))
 
 
 @override_sample('foo', active=False)
@@ -350,7 +348,7 @@ class InheritanceOverrideSwitchOnClassTests(OverrideSwitchOnClassTestCase):
     """
 
     def test_child_undecorated_method_is_set_properly_for_switch(self):
-        self.assertFalse(waffle.switch_is_active('foo'))
+        self.assertFalse(waffle.switch_is_active(req(), 'foo'))
 
 
 class InheritanceOverrideFlagOnClassTests(OverrideFlagOnClassTestCase):
@@ -370,4 +368,4 @@ class InheritanceOverrideSampleOnClassTests(OverrideSampleOnClassTestCase):
     """
 
     def test_child_undecorated_method_is_set_properly_for_sample(self):
-        self.assertFalse(waffle.sample_is_active('foo'))
+        self.assertFalse(waffle.sample_is_active(req(), 'foo'))

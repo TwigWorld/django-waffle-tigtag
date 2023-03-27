@@ -2,6 +2,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.db import models
 from django.db.models import CASCADE
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.sites.models import Site
 
 from waffle.models import AbstractUserFlag, CACHE_EMPTY
 from waffle.utils import get_setting, keyfmt, get_cache
@@ -35,6 +36,8 @@ class CompanyAwareFlag(AbstractUserFlag):
         blank=True,
         help_text=_('Activate this flag for these companies.'),
     )
+
+    site = models.ForeignKey(Site, blank=True, null=True, related_name='waffle_flags')
 
     def get_flush_keys(self, flush_keys=None):
         flush_keys = super(CompanyAwareFlag, self).get_flush_keys(flush_keys)
